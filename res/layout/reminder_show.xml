@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <com.qrobot.mm.clock.DontPressWithParentLayout 
+        android:id="@+id/indicator"
+        style="@style/alarm_list_left_column"
+        android:background="@drawable/clock_selector"
+        android:gravity="center"
+        android:orientation="vertical">
+        <CheckBox android:id="@+id/clock_onoff"
+            android:focusable="false"
+            android:clickable="false"
+            android:background="@drawable/indicator_clock_onoff"
+            android:duplicateParentState="true"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:button="@null" />
+        <ImageView android:id="@+id/bar_onoff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingTop="4dip"
+            android:src="@drawable/ic_indicator_off" />
+    </com.qrobot.mm.clock.DontPressWithParentLayout>
+
+    <ImageView
+        android:src="@drawable/divider_vertical_dark"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingTop="4dip"
+        android:paddingBottom="4dip"
+        android:scaleType="fitXY"
+        android:gravity="fill_vertical" />
+     
+    <com.qrobot.mm.reminder.ReminderShow 
+        android:id="@+id/reminderShow"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingLeft="16dip"
+        android:paddingRight="16dip">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="true"
+            >
+
+            <TextView android:id="@+id/reminder_time"
+                android:includeFontPadding="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="6dip"
+                android:textSize="18sp"
+                android:textColor="?android:attr/textColorPrimary"/>
+
+            <TextView android:id="@+id/reminder_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"/>
+
+        </LinearLayout>
+
+        <TextView android:id="@+id/reminder_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dip"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="?android:attr/textColorTertiary"
+                android:textStyle="bold"
+                android:gravity="left"
+                
+                android:ellipsize="marquee" 
+		        android:focusable="false" 
+		        android:marqueeRepeatLimit="marquee_forever" 
+		        android:focusableInTouchMode="true" 
+		        android:scrollHorizontally="true"
+        
+                android:singleLine="true"/>
+                    
+    </com.qrobot.mm.reminder.ReminderShow>
+
+</LinearLayout>

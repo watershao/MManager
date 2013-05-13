@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center"
+    android:orientation="vertical" >
+    <!--  -->
+
+    <LinearLayout
+        android:id="@+id/LinearLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+          <!--  -->
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:paddingBottom="30dp"
+            android:src="@drawable/loginui_head"
+            />
+        <EditText
+            android:id="@+id/login_name"
+            android:singleLine="true"
+            android:layout_width="280dp"
+            android:layout_height="60dp"
+			android:textSize="23dp"  
+			android:typeface="monospace"
+            android:textColor="#8F8F8F"
+            android:hint="@string/login_name_hint"
+            android:inputType="number"
+            
+            />
+        <!-- android:text="@string/login_name"  android:text="@string/login_pwd"-->
+
+        <EditText
+            android:id="@+id/login_pwd"
+            android:singleLine="true"
+            android:layout_width="280dp"
+            android:layout_height="60dp"
+			android:textSize="23dp"
+            android:textColor="#8F8F8F"
+			android:hint="@string/login_pwd_hint"
+			android:password="true"
+			
+            />
+
+        <!-- android:ems="12"
+        android:textStyle="bold"
+        android:text="@string/pwd" 
+        android:text="@string/name"
+        android:textSize="23dp"
+        android:text="@string/check_pwd"
+        android:textColor="#8F8F8F"
+        <requestFocus /> -->
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        	android:gravity="center" >
+
+            <CheckBox
+                android:id="@+id/login_pwd_remember"
+                android:text="@string/login_pwd_remember"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="21dp"
+				android:typeface="monospace"
+           	 	android:textColor="#8F8F8F"
+           	 	android:paddingRight="60dp"
+           	 	android:checked="true"
+           	 	android:button="@drawable/pwdcheckbox"/>
+           	 	<!-- style="@style/PwdCheckBox" /> -->
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/login_pwd_forget"
+                android:textSize="21dp"
+				android:typeface="monospace"
+           	 	android:textColor="#8F8F8F" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/loginBtn"
+            android:focusable="false"
+            android:layout_width="280dp"
+            android:layout_height="40dp"
+		/>
+
+        <TextView
+            android:id="@+id/login_text"
+            android:layout_width="fill_parent"
+            android:layout_height="35dp"
+            android:scrollbars="vertical" />
+
+    </LinearLayout>
+
+</LinearLayout>

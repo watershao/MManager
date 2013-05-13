@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@+id/TabContainer" 
+    android:background="@drawable/tab_back1" 
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:layout_gravity="center" android:id="@+id/TabLinearLayout" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <RadioGroup android:orientation="horizontal" android:id="@+id/main_radio" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <RadioButton android:gravity="center" android:id="@+id/radio_clock"  android:text="@string/radio_clock" android:drawableTop="@drawable/item1xml" style="@style/main_tab_bottom" />
+            <RadioButton android:gravity="center" android:id="@+id/radio_pet" android:text="@string/radio_pet" android:drawableTop="@drawable/item2xml" style="@style/main_tab_bottom" />
+            <RadioButton android:gravity="center" android:id="@+id/radio_photo" android:text="@string/radio_photo" android:drawableTop="@drawable/item3xml" style="@style/main_tab_bottom" />
+            <RadioButton android:gravity="center" android:id="@+id/radio_joyctl" android:text="@string/radio_joyctl" android:drawableTop="@drawable/item4xml" style="@style/main_tab_bottom" />
+            <RadioButton android:gravity="center" android:id="@+id/radio_more" android:text="@string/radio_more" android:drawableTop="@drawable/item5xml" style="@style/main_tab_bottom" />
+        </RadioGroup>
+     </LinearLayout>
+</FrameLayout>
+<!--
+android:checked="true"-->

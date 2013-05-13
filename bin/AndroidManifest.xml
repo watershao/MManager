@@ -1,0 +1,82 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.qrobot.mm"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="17" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+	
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        
+        <activity
+            android:name="com.qrobot.mm.HomeActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <activity
+            android:name="com.qrobot.mm.LoginActivity"
+            android:label="@string/app_name" >
+            
+        </activity>
+        
+        <activity
+            android:name="com.qrobot.mm.MainUIActivity"
+            android:label="@string/app_name" >
+            
+        </activity>
+        
+        <provider android:name="com.qrobot.mm.clock.AlarmProvider"
+                android:authorities="com.qrobot.mm.clock"
+                android:exported="false" />
+        
+        <activity android:name="com.qrobot.mm.clock.SetAlarm" android:label="@string/set_alarm"
+        	android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
+       
+        <activity android:name="com.qrobot.mm.reminder.SetReminder" android:label="@string/set_reminder"
+        	android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
+        
+        <activity android:name="com.qrobot.mm.pet.SetPet" android:label="@string/set_pet"
+        	android:configChanges="orientation|keyboardHidden|keyboard|navigation" />
+        
+        
+        <service android:enabled="true" android:name="com.qrobot.mm.netty.QRClientService" >
+			<intent-filter>
+				<action android:name="com.qrobot.mm.netty.QRClientService" />
+			</intent-filter>
+		</service>
+		
+       <activity android:name="com.qrobot.mm.bluetooth.BluetoothActivity"
+		         android:label="@string/app_name"
+		         android:configChanges="orientation|keyboardHidden">
+
+        </activity>
+        <activity android:name="com.qrobot.mm.bluetooth.DeviceListActivity" android:uiOptions="splitActionBarWhenNarrow"
+                  android:label="@string/select_device"
+                  android:theme="@android:style/Theme.Holo.Dialog"
+                  android:configChanges="orientation|keyboardHidden" />
+        
+    </application>
+
+</manifest>

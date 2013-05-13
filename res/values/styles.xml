@@ -1,0 +1,44 @@
+<resources>
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+
+    
+    	<!-- 下面导航样式 -->
+	<style name="main_tab_bottom">
+        <item name="android:textSize">13dp</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:background">@drawable/tabhostxml</item>
+        <item name="android:paddingTop">3.0dip</item>
+        <item name="android:paddingBottom">3.0dip</item>
+        <item name="android:paddingLeft">1.0dip</item>
+        <item name="android:paddingRight">1.0dip</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:button">@null</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:layout_weight">1.0</item>
+    </style>
+    
+	
+	    <!-- alarm clock -->
+    <style name="alarm_list_left_column">
+        <item name="android:layout_width">68dip</item>
+        <item name="android:layout_height">68dip</item>
+    </style>
+</resources>
