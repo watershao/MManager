@@ -1,6 +1,9 @@
 package com.qrobot.mm.pet.login;
 
+import java.util.HashMap;
 import java.util.List;
+
+import android.util.Log;
 
 public class QRClientManager {
 
@@ -9,19 +12,19 @@ public class QRClientManager {
 	
 	QrResServerInfo serverInfo = null;
 	
+	
+	public QRClientManager(){
+		super();
+		client = new QRClient(UPDATE_URL);;
+	}
+
+
 	/**
 	 * 验证并登陆
 	 * @return
 	 */
 	public boolean checkToLogin(String loginInfo){
-		StringBuffer sb = new StringBuffer();
-		// 在测试过程中，经常是用本机做测试服务器，访问本机的IP地址要设置为10.0.2.2
-//		String url = "http://app31363.qzoneapp.com/qr";
-		client = new QRClient(UPDATE_URL);
-		/*String robotId = "3B6D000000005124429A9BF1000004000200";
-		String sellId = "c92bf50fa7abcf033";
-		HashMap mapResult = client.activeCode(0, robotId, sellId);
-		*/
+	
 		String loginStr = "5A1B0000000000000198b1d8fcf84062ff40debe9e69af8890";
 //		String loginStr = getLocalID();
 		byte[] bData = QRUtil.HexString2Bytes(loginStr);
@@ -31,6 +34,26 @@ public class QRClientManager {
 		return ret;
 	}
 	
+	/**
+	 * 激活小Q ID
+	 * @param chipId
+	 * @param sellId
+	 * @return
+	 */
+	public String activateRobID(String chipId, String sellId){
+		if (client != null) {
+			HashMap mapResult = client.activeCode(0, chipId, sellId);
+			if (mapResult == null || mapResult.isEmpty()) {
+				return null;
+			}
+			String robId = String.valueOf(mapResult.get("robotCode"));
+			String robKey = (String)mapResult.get("robotKey");
+			String expireDate = (String)mapResult.get("expiredDate");
+			Log.w("QRClientManager", "robId:"+robId+",robKey:"+robKey+",expireDate:"+expireDate);
+			return robId;
+		}
+		return null;
+	}
 	/**
 	 * 获取版本信息
 	 * @return

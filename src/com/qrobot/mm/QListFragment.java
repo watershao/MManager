@@ -16,7 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.qrobot.mm.active.QroInfoManager;
+import com.qrobot.mm.activate.QroInfoManager;
 
 public class QListFragment extends ListFragment {
 

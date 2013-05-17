@@ -27,15 +27,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.qrobot.mm.wizard.SandwichWizardModel;
+import com.qrobot.mm.wizard.model.AbstractWizardModel;
+import com.qrobot.mm.wizard.model.Page;
+import com.qrobot.mm.wizard.ui.ReviewFragment;
+import com.qrobot.mm.wizard.ui.StepPagerStrip;
 import com.qrobot.mm.R;
+import com.qrobot.mm.activate.QroInfoManager;
 import com.qrobot.mm.bluetooth.util.BluetoothConstants;
 import com.qrobot.mm.bluetooth.util.TypeConvert;
 import com.qrobot.mm.bluetooth.util.WifiParam;
+import com.qrobot.mm.pet.login.QRClientManager;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.TabActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -45,10 +53,18 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTabHost;
+import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -56,6 +72,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -68,13 +85,18 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * This is the main Activity that displays the current chat session.
  */
-public class BluetoothActivity extends Activity {
+public class BluetoothActivity extends FragmentActivity implements
+
+									com.qrobot.mm.wizard.ui.PageFragmentCallbacks,
+									com.qrobot.mm.wizard.ui.ReviewFragment.Callbacks,
+									com.qrobot.mm.wizard.model.ModelCallbacks{
     // Debugging
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
@@ -118,14 +140,34 @@ public class BluetoothActivity extends Activity {
     
     private TextView currentWifiState = null;
     
+//    private TabHost tabHost;  
+    private FragmentTabHost tabHost;
+    
+    private LinearLayout tabWifiLayout;
+    
+    private LinearLayout tabActiveLayout;
+    
+    private String mChipId = "";
+    
+    private String mRobId = "0";
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(D) Log.e(TAG, "+++ ON CREATE +++");
 
         // Set up the window layout
-        setContentView(R.layout.bt_main);
-
+//        setContentView(R.layout.bt_main);
+        setContentView(R.layout.tabhost_main);
+//        tabHost = getTabHost();
+        
+        tabHost = (FragmentTabHost)findViewById(android.R.id.tabhost);
+        tabHost.setup(this, getSupportFragmentManager(), R.id.realtabcontent);
+        createTabSpec_wifi();
+        createTabSpec_active();
+        createTabSpec_wizard();
+//        setContentView(tabHost);
+        
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -135,9 +177,259 @@ public class BluetoothActivity extends Activity {
             finish();
             return;
         }
-        manageWifi();
+//        manageWifi();
     }
 
+    private void createTabSpec_wifi() {    
+        LayoutInflater inflater_tab1 = LayoutInflater.from(this);    
+        inflater_tab1.inflate(R.layout.bt_main, tabHost.getTabContentView()); 
+              
+        tabWifiLayout = (LinearLayout) findViewById(R.id.tabhost_bt);    
+            
+        TabHost.TabSpec tabSpec_wifi = tabHost.newTabSpec("WiFiSet");    
+        tabSpec_wifi.setIndicator("设置小Qwifi", getResources().getDrawable(android.R.drawable.arrow_down_float));   
+        
+//        tabSpec_wifi.setContent(R.id.tabhost_bt); // 动态绑定基于图片的View(通过一个Layout绑定)    
+        tabHost.addTab(tabSpec_wifi,WifiSetFragment.class,null);  
+        
+        manageWifi();
+    }    
+    
+    private void createTabSpec_active() {    
+        LayoutInflater inflater_tab2 = LayoutInflater.from(this);    
+        inflater_tab2.inflate(R.layout.activate_main, tabHost.getTabContentView());    
+        
+        tabActiveLayout = (LinearLayout)findViewById(R.id.tabhost_activate);
+        
+        TabHost.TabSpec tabSpec_activate = tabHost.newTabSpec("Activate");    
+        tabSpec_activate.setIndicator("激活小Q",getResources().getDrawable(android.R.drawable.arrow_down_float));    
+//        tabSpec_activate.setContent(R.id.tabhost_activate); // 绑定一个新的Layout    
+
+        tabHost.addTab(tabSpec_activate,ActivateFragment.class,null);    
+            
+        /*  
+         * 这个绑定View的操作必须要重新使用一个新方法来完成，因为Tab的生成是在onCreate()中完成的，onCreate()只被调用一次，  
+         * 但是数据更新操作是需要反复进行的，如果反复调用createTabSpec_hs()则会生成多个tab页，这是我们不希望的，所以单独把  
+         * updata分离出来，数据更新时单独调用此方法就可以了。  
+         */    
+        manageActivate();
+    }
+    
+    private void createTabSpec_wizard() {    
+        LayoutInflater inflater_tab2 = LayoutInflater.from(this);    
+        inflater_tab2.inflate(R.layout.wizard_main, tabHost.getTabContentView());    
+        
+        tabActiveLayout = (LinearLayout)findViewById(R.id.tabhost_activate);
+        
+        TabHost.TabSpec tabSpec_activate = tabHost.newTabSpec("Wizard");    
+        tabSpec_activate.setIndicator("激活向导",getResources().getDrawable(android.R.drawable.arrow_down_float));    
+//        tabSpec_activate.setContent(R.id.tabhost_activate); // 绑定一个新的Layout    
+
+        tabHost.addTab(tabSpec_activate,WizardFragment.class,null);    
+            
+        /*  
+         * 这个绑定View的操作必须要重新使用一个新方法来完成，因为Tab的生成是在onCreate()中完成的，onCreate()只被调用一次，  
+         * 但是数据更新操作是需要反复进行的，如果反复调用createTabSpec_hs()则会生成多个tab页，这是我们不希望的，所以单独把  
+         * updata分离出来，数据更新时单独调用此方法就可以了。  
+         */    
+        initWizard();
+    }
+    
+    public static class WifiSetFragment extends Fragment{
+
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			// TODO Auto-generated method stub
+			super.onCreate(savedInstanceState);
+			
+			Log.d(TAG, "onCreate");
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			Log.d(TAG, "onCreateView");
+			View v = inflater.inflate(R.layout.bt_main, container, false);
+			
+			return v;
+		}
+    	
+    }
+    
+    public static class ActivateFragment extends Fragment{
+
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			// TODO Auto-generated method stub
+			super.onCreate(savedInstanceState);
+			
+			Log.d(TAG, "onCreate");
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			Log.d(TAG, "onCreateView");
+			View v = inflater.inflate(R.layout.activate_main, container, false);
+			
+			return v;
+		}
+    	
+    }
+    
+    public static class WizardFragment extends Fragment{
+
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			// TODO Auto-generated method stub
+			super.onCreate(savedInstanceState);
+			
+			Log.d(TAG, "onCreate");
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			Log.d(TAG, "onCreateView");
+			View v = inflater.inflate(R.layout.wizard_main, container, false);
+			
+			return v;
+		}
+    	
+    }
+    
+    private void manageActivate(){
+    	Button robIdButton = (Button)findViewById(R.id.button_get_chipid);
+    	Button robkeyButton = (Button)findViewById(R.id.button_get_robid);
+    	Button writeButton = (Button)findViewById(R.id.button_write_robid);
+    	Button boundButton = (Button)findViewById(R.id.button_bound_robid);
+    	
+		OnClickListener activeClickListener = new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						switch (v.getId()) {
+						
+						case R.id.button_get_chipid:
+							sendWifiMessage(WifiParam.ACTIVATE_CHIPID);
+							
+							break;
+						case R.id.button_get_robid:
+							sendWifiMessage(WifiParam.ACTIVATE_ROBID_READ);
+							
+							break;
+						case R.id.button_write_robid:
+							
+							new ActivateThread().start();
+							
+							break;	
+						case R.id.button_bound_robid:
+							
+							new BoundThread().start();
+
+							break;		
+							
+						}
+					}
+		};
+    	
+    	robIdButton.setOnClickListener(activeClickListener);
+    	robkeyButton.setOnClickListener(activeClickListener);
+    	writeButton.setOnClickListener(activeClickListener);
+    	boundButton.setOnClickListener(activeClickListener);
+    }
+    
+    /**
+     * 绑定qq 和小Q
+     * @param qq
+     * @param robId
+     * @return
+     */
+    private boolean boundRobIdByQQ(String qq, String robId){
+    	QroInfoManager qInfoManager = new QroInfoManager();
+    	boolean bound = qInfoManager.boundRobCodeByQQ(qq, robId);
+    	return bound;
+    }
+    
+    /**
+     * 读取小Q id
+     * @param chipId
+     * @param sellId
+     * @return
+     */
+    private String getRobId(String chipId,String sellId){
+		String robotId = "3B6D000000005124429A9BF1000004000200";
+		String sellId1 = "c92bf50fa7abcf033";
+//		robId:300575,robKey:E0FB75F7C7BD291D,expireDate:2113-05-16
+		QRClientManager clientManager = new QRClientManager();
+		String robId = clientManager.activateRobID(robotId, sellId1);
+		robId = "300575";
+    	return robId;
+    }
+    
+    private class BoundThread extends Thread {
+		
+ 		@Override
+ 		public void run() {
+ 			// TODO Auto-generated method stub
+ 			
+			boolean bound = boundRobIdByQQ("123456", "654321");
+			Log.d(TAG, "bound:"+bound);
+ 			
+ 			activateHandler.obtainMessage(2,String.valueOf(bound)).sendToTarget();
+ 		}
+ 	};
+    
+    private class ActivateThread extends Thread {
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			String robId = getRobId(mChipId, "");
+			Log.d(TAG, "write robId:"+robId);
+			if (robId == null || robId == "") {
+				activateHandler.obtainMessage(-1).sendToTarget();
+				return;
+			}
+			
+			activateHandler.obtainMessage(1,robId).sendToTarget();
+		}
+	};
+    
+	private Handler activateHandler = new Handler(){
+
+		@Override
+		public void handleMessage(Message msg) {
+			// TODO Auto-generated method stub
+			super.handleMessage(msg);
+			switch (msg.what) {
+			case 1:
+				String robId = (String)msg.obj;
+	        	byte[] sendByteArray = TypeConvert.getSendByteArray(WifiParam.ACTIVATE_ROBID_WRITE, robId);
+				mChatService.write(sendByteArray);
+				
+				break;
+			case 2:
+				boolean bound = Boolean.valueOf(String.valueOf(msg.obj));
+				if (bound) {
+					Toast.makeText(getApplicationContext(), "bound success", Toast.LENGTH_SHORT).show();
+				}else {
+					Toast.makeText(getApplicationContext(), "bound failed", Toast.LENGTH_SHORT).show();
+				}
+				
+				break;	
+
+			case -1:
+				Toast.makeText(getApplicationContext(), "read robid error", Toast.LENGTH_SHORT).show();
+				break;
+			default:
+				break;
+			}
+			
+		}
+		
+	};
+	
     private Button openButton = null;
     private Button closeButton = null;
     private Button scanButton = null;
@@ -368,6 +660,7 @@ public class BluetoothActivity extends Activity {
         // Stop the Bluetooth chat services
         if (mChatService != null) mChatService.stop();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
+        mWizardModel.unregisterListener(this);
     }
 
     /**
@@ -630,6 +923,28 @@ public class BluetoothActivity extends Activity {
 			handleWifiState(wifiState);
 			
 			break;
+			
+		case WifiParam.ACTIVATE_CHIPID:
+			String chipid = (String)TypeConvert.ByteToObject(readByteArrayList.get(1));
+			
+			mChipId = chipid;
+			Log.w(TAG, ">>>>>>chipid:"+chipid);
+			mConversationArrayAdapter.add(mConnectedDeviceName+":  " + "chipid:"+chipid);
+			
+			break;
+		case WifiParam.ACTIVATE_ROBID_READ:
+			String robid = (String)TypeConvert.ByteToObject(readByteArrayList.get(1));
+			mRobId = robid;
+			Log.w(TAG, ">>>>>>robid read:"+robid);
+			mConversationArrayAdapter.add(mConnectedDeviceName+":  " + "robkey read:"+robid);
+			
+			break;
+		case WifiParam.ACTIVATE_ROBID_WRITE:
+			String write = (String)TypeConvert.ByteToObject(readByteArrayList.get(1));
+			
+			Log.w(TAG, ">>>>>>write:"+write);
+			mConversationArrayAdapter.add(mConnectedDeviceName+":  " + "write robkey:"+write);
+			break;	
 		case WifiParam.MESSAGE_TEXT:
 			// construct a string from the valid bytes in the buffer
 //			String readMessage = new String(readBuf, 0, msg.arg1);
@@ -1024,4 +1339,236 @@ public class BluetoothActivity extends Activity {
 		
 		return sendByteArray;
 	}
+	
+	
+	   private ViewPager mPager;
+	    private MyPagerAdapter mPagerAdapter;
+
+	    private boolean mEditingAfterReview;
+
+	    private AbstractWizardModel mWizardModel = new SandwichWizardModel(this);
+
+	    private boolean mConsumePageSelectedEvent;
+
+	    private Button mNextButton;
+	    private Button mPrevButton;
+
+	    private List<Page> mCurrentPageSequence;
+	    private StepPagerStrip mStepPagerStrip;
+	    
+	    
+	    private void initWizard(){
+//	        if (savedInstanceState != null) {
+//	            mWizardModel.load(savedInstanceState.getBundle("model"));
+//	        }
+
+	        mWizardModel.registerListener(this);
+
+	        mPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
+	        mPager = (ViewPager) findViewById(R.id.pager);
+	        mPager.setAdapter(mPagerAdapter);
+	        mStepPagerStrip = (StepPagerStrip) findViewById(R.id.strip);
+	        mStepPagerStrip.setOnPageSelectedListener(new StepPagerStrip.OnPageSelectedListener() {
+	            @Override
+	            public void onPageStripSelected(int position) {
+	                position = Math.min(mPagerAdapter.getCount() - 1, position);
+	                if (mPager.getCurrentItem() != position) {
+	                    mPager.setCurrentItem(position);
+	                }
+	            }
+	        });
+
+	        mNextButton = (Button) findViewById(R.id.next_button);
+	        mPrevButton = (Button) findViewById(R.id.prev_button);
+
+	        mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+	            @Override
+	            public void onPageSelected(int position) {
+	                mStepPagerStrip.setCurrentPage(position);
+
+	                if (mConsumePageSelectedEvent) {
+	                    mConsumePageSelectedEvent = false;
+	                    return;
+	                }
+
+	                mEditingAfterReview = false;
+	                updateBottomBar();
+	            }
+	        });
+
+	        mNextButton.setOnClickListener(new View.OnClickListener() {
+	            @Override
+	            public void onClick(View view) {
+	                if (mPager.getCurrentItem() == mCurrentPageSequence.size()) {
+	                    DialogFragment dg = new DialogFragment() {
+	                        @Override
+	                        public Dialog onCreateDialog(Bundle savedInstanceState) {
+	                            return new AlertDialog.Builder(getActivity())
+	                                    .setMessage(R.string.submit_confirm_message)
+	                                    .setPositiveButton(R.string.submit_confirm_button, null)
+	                                    .setNegativeButton(android.R.string.cancel, null)
+	                                    .create();
+	                        }
+	                    };
+	                    dg.show(getSupportFragmentManager(), "place_order_dialog");
+	                } else {
+	                    if (mEditingAfterReview) {
+	                        mPager.setCurrentItem(mPagerAdapter.getCount() - 1);
+	                    } else {
+	                        mPager.setCurrentItem(mPager.getCurrentItem() + 1);
+	                    }
+	                }
+	            }
+	        });
+
+	        mPrevButton.setOnClickListener(new View.OnClickListener() {
+	            @Override
+	            public void onClick(View view) {
+	                mPager.setCurrentItem(mPager.getCurrentItem() - 1);
+	            }
+	        });
+
+	        onPageTreeChanged();
+	        updateBottomBar();
+	    }
+	    
+	    @Override
+	    public void onPageTreeChanged() {
+	        mCurrentPageSequence = mWizardModel.getCurrentPageSequence();
+	        recalculateCutOffPage();
+	        mStepPagerStrip.setPageCount(mCurrentPageSequence.size() + 1); // + 1 = review step
+	        mPagerAdapter.notifyDataSetChanged();
+	        updateBottomBar();
+	    }
+
+	    private void updateBottomBar() {
+	        int position = mPager.getCurrentItem();
+	        if (position == mCurrentPageSequence.size()) {
+	            mNextButton.setText(R.string.finish);
+	            mNextButton.setBackgroundResource(R.drawable.finish_background);
+	            mNextButton.setTextAppearance(this, R.style.TextAppearanceFinish);
+	        } else {
+	            mNextButton.setText(mEditingAfterReview
+	                    ? R.string.review
+	                    : R.string.next);
+	            mNextButton.setBackgroundResource(R.drawable.selectable_item_background);
+	            TypedValue v = new TypedValue();
+	            getTheme().resolveAttribute(android.R.attr.textAppearanceMedium, v, true);
+	            mNextButton.setTextAppearance(this, v.resourceId);
+	            mNextButton.setEnabled(position != mPagerAdapter.getCutOffPage());
+	        }
+
+	        mPrevButton.setVisibility(position <= 0 ? View.INVISIBLE : View.VISIBLE);
+	    }
+
+
+	    @Override
+	    protected void onSaveInstanceState(Bundle outState) {
+	        super.onSaveInstanceState(outState);
+	        outState.putBundle("model", mWizardModel.save());
+	    }
+
+	    @Override
+	    public AbstractWizardModel onGetModel() {
+	        return mWizardModel;
+	    }
+
+	    @Override
+	    public void onEditScreenAfterReview(String key) {
+	        for (int i = mCurrentPageSequence.size() - 1; i >= 0; i--) {
+	            if (mCurrentPageSequence.get(i).getKey().equals(key)) {
+	                mConsumePageSelectedEvent = true;
+	                mEditingAfterReview = true;
+	                mPager.setCurrentItem(i);
+	                updateBottomBar();
+	                break;
+	            }
+	        }
+	    }
+
+	    @Override
+	    public void onPageDataChanged(Page page) {
+	        if (page.isRequired()) {
+	            if (recalculateCutOffPage()) {
+	                mPagerAdapter.notifyDataSetChanged();
+	                updateBottomBar();
+	            }
+	        }
+	    }
+
+	    @Override
+	    public Page onGetPage(String key) {
+	        return mWizardModel.findByKey(key);
+	    }
+
+	    private boolean recalculateCutOffPage() {
+	        // Cut off the pager adapter at first required page that isn't completed
+	        int cutOffPage = mCurrentPageSequence.size() + 1;
+	        for (int i = 0; i < mCurrentPageSequence.size(); i++) {
+	            Page page = mCurrentPageSequence.get(i);
+	            if (page.isRequired() && !page.isCompleted()) {
+	                cutOffPage = i;
+	                break;
+	            }
+	        }
+
+	        if (mPagerAdapter.getCutOffPage() != cutOffPage) {
+	            mPagerAdapter.setCutOffPage(cutOffPage);
+	            return true;
+	        }
+
+	        return false;
+	    }
+
+	    public class MyPagerAdapter extends FragmentStatePagerAdapter {
+	        private int mCutOffPage;
+	        private Fragment mPrimaryItem;
+
+	        public MyPagerAdapter(FragmentManager fm) {
+	            super(fm);
+	        }
+
+	        @Override
+	        public Fragment getItem(int i) {
+	            if (i >= mCurrentPageSequence.size()) {
+	                return new ReviewFragment();
+	            }
+
+	            return mCurrentPageSequence.get(i).createFragment();
+	        }
+
+	        @Override
+	        public int getItemPosition(Object object) {
+	            // TODO: be smarter about this
+	            if (object == mPrimaryItem) {
+	                // Re-use the current fragment (its position never changes)
+	                return POSITION_UNCHANGED;
+	            }
+
+	            return POSITION_NONE;
+	        }
+
+	        @Override
+	        public void setPrimaryItem(ViewGroup container, int position, Object object) {
+	            super.setPrimaryItem(container, position, object);
+	            mPrimaryItem = (Fragment) object;
+	        }
+
+	        @Override
+	        public int getCount() {
+	            return Math.min(mCutOffPage + 1, mCurrentPageSequence.size() + 1);
+	        }
+
+	        public void setCutOffPage(int cutOffPage) {
+	            if (cutOffPage < 0) {
+	                cutOffPage = Integer.MAX_VALUE;
+	            }
+	            mCutOffPage = cutOffPage;
+	        }
+
+	        public int getCutOffPage() {
+	            return mCutOffPage;
+	        }
+	    }
+	    
 }

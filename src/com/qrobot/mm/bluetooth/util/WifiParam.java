@@ -120,4 +120,12 @@ public class WifiParam {
     
     public static final int WIFI_FORGET = 0x08;
     
+    //activate
+    
+    public static final int ACTIVATE_CHIPID = 0x09;
+    
+    public static final int ACTIVATE_ROBID_READ = 0x0A;
+    
+    public static final int ACTIVATE_ROBID_WRITE = 0x0B;
+    
 }

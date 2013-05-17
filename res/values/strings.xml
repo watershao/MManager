@@ -154,6 +154,13 @@
     <string name="wifi_cancel">取消</string>
     <string name="wifi_connect">连接</string>
     
+    <!-- activate -->
+    <string name="get_chipid">获取芯片ID</string>
+    <string name="get_robid">获取RobID</string>
+    <string name="write_robid">写入RobID</string>
+    <string name="bound_robid">绑定RobID</string>
+    <string name="activate_state_prompt">当前激活状态：</string>
+    <string name="activate_current_state">未激活</string>
     
     <!-- prompt -->
     <string name="prompt_offline">对不起，您已经处于离线状态，请登录后再试！</string>
@@ -163,5 +170,20 @@
     
     <string name="prompt_upload_success">数据上传服务器成功</string>
     <string name="prompt_upload_failed">数据上传服务器失败，请稍后再试</string>
+    
+    <!-- wizard -->
+    <string name="next">Next</string>
+    <string name="prev">Previous</string>
+    <string name="finish">Submit order</string>
+    <string name="review">Review</string>
+
+    <string name="label_your_name">Name</string>
+    <string name="label_your_email">Email</string>
+    <string name="hint_your_name">e.g. Larry</string>
+    <string name="hint_your_email">Optional</string>
+
+    <string name="submit_confirm_message">Place the order with the deli? You will receive an email
+        confirmation.</string>
+    <string name="submit_confirm_button">Place order</string>
     
 </resources>
